@@ -1,10 +1,59 @@
 import streamlit as st
-import pandas as pd
+from src.auth.auth import init_session, logout
+from views import home, login, analisis, prediccion, configuracion
 
-st.set_page_config(page_title='predicciones.es', page_icon="smile")
-def main():
-    st.title("Predicción de Hidrocarburos")
-    st.text("Se hará la predicción de dibrocarburos por provincia y tipo de Combustible")
+st.set_page_config(
+    page_title='predicciones.es', 
+    page_icon="⛽",
+    layout="wide"
+)
 
-if __name__=='__main__':
-    main()
+init_session()
+
+# ---------- MENÚ LATERAL ----------
+#st.sidebar.title("🧭 Navegación")
+
+if st.session_state.authenticated:
+
+    option = st.sidebar.radio(
+        "Menú",
+        ["Home", "Análisis", "Predicciones", "Configuración"]
+    )
+
+    if st.sidebar.button("🔓 Cerrar sesión"):
+        logout()
+        st.rerun()
+
+else:
+    option = st.sidebar.radio(
+        "Menú",
+        ["Home", "Login"]
+    )
+
+# ---------- RENDER VISTAS ----------
+if option == "Home":
+    home.run()
+
+elif option == "Login":
+    login.run()
+
+elif option == "Análisis":
+    if st.session_state.authenticated:
+        analisis.run()
+    else:
+        st.warning("Debes iniciar sesión")
+        login.run()
+
+elif option == "Predicciones":
+    if st.session_state.authenticated:
+        prediccion.run()
+    else:
+        st.warning("Debes iniciar sesión")
+        login.run()
+
+elif option == "Configuración":
+    if st.session_state.authenticated:
+        configuracion.run()
+    else:
+        st.warning("Debes iniciar sesión")
+        login.run()
