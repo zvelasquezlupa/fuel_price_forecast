@@ -70,10 +70,6 @@ def predict_segment(provincia, producto):
     pred_mean = pred.predicted_mean
     pred_ci = pred.conf_int()
 
-    # --- Evaluación ---
-    mae = mean_absolute_error(y_test, pred_mean)
-    rmse = mean_squared_error(y_test, pred_mean) ** 0.5  # RMSE manual
-    
     # --- Guardar resultados de predicción ---
     df_pred = pd.DataFrame({
         "Real": y_test,
@@ -83,5 +79,20 @@ def predict_segment(provincia, producto):
     })
     df_pred.to_parquet(os.path.join(BASE_PATH, provincia, producto, "prediccion.parquet"))
 
+def get_predict(provincia, producto):
+    # --- Construir ruta del archivo ---
+    BASE_PATH = "src/data/segmented"
+    ruta = os.path.join(BASE_PATH, provincia, producto, "prediccion.parquet")
+
+    # --- Leer datos ---
+    df_pred = pd.read_parquet(ruta)
+   
+    pred_mean = df_pred["Predicción"]
+    pred_ci = df_pred[["Lower", "Upper"]]
+    y_test = df_pred["Real"]
+
+    # --- Evaluación ---
+    mae = mean_absolute_error(y_test, pred_mean)
+    rmse = mean_squared_error(y_test, pred_mean) ** 0.5  # RMSE manual
 
     return y_test, pred_mean, pred_ci, mae, rmse

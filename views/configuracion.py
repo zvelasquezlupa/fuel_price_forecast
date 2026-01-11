@@ -3,11 +3,10 @@ from src.data_loader import loadBret, getBret
 
 
 def run():
-    st.title("⚙️ Configuración del sistema")
-    df_final= getBret()
-
     st.title("📥 Carga de precios base (EIA)")
-
+    
+    df_final= getBret()
+    
     uploaded_file = st.file_uploader(
         "Sube el archivo Excel de la EIA (.xls / .xlsx)",
         type=["xls", "xlsx"]

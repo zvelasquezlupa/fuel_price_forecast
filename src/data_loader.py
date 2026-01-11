@@ -20,14 +20,14 @@ def getBret():
         print("❌ No se encontraron archivos parquet")
         return None
     
-    return pd.read_parquet(parquet_files[0])
+    df= pd.read_parquet(parquet_files[0])
+    df=df.rename(columns={"fecha": "Fecha"})
+    return df
 
 def get_Bret_for_dates(fechas):
     df_petroleo = getBret()
 
     # Normalizar columnas
-    df_petroleo.columns = df_petroleo.columns.str.strip().str.lower()
-    df_petroleo = df_petroleo.rename(columns={"fecha": "Fecha"})
     df_petroleo["Fecha"] = pd.to_datetime(df_petroleo["Fecha"])
 
     df_petroleo = df_petroleo.set_index("Fecha").sort_index()

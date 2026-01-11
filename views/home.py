@@ -1,6 +1,6 @@
 import streamlit as st
 import os
-import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 
 from src.forecast import predict_future_days
 
@@ -8,12 +8,7 @@ def run():
     st.title("Predicción del precio de los carburantes en España")
 
     st.markdown("""
-    ### 📊 Objetivo del proyecto
-
-    Esta aplicación presenta los resultados del análisis y predicción del precio
-    de los carburantes en España, a partir de datos oficiales y modelos de series temporales.
-
-    ### 🔎 Qué puedes consultar
+    ### 🔎 Consultar el precio del carburante
     - Predicciones por rango de días
     - Tipo de combustible
     - Municipio
@@ -45,51 +40,78 @@ def run():
         st.stop()
 
     producto = st.selectbox("Producto", productos)
-    st.info("Esta sección es pública y no requiere autenticación.")
 
     horizonte = st.selectbox(
         "Horizonte de predicción",
-        [30, 60, 90],
+        [30, 60, 90, 120],
         index=0
     )
-
-    if st.button("Generar predicción futura"):
+    if st.button("Generar"):
         df_hist, df_pred, metrics = predict_future_days(provincia, producto, horizonte)
 
-        # --- Panel de métricas ---
-        st.subheader("📊 Métricas del modelo cargado")
+        # --- Métricas ---
+        """
+        st.subheader("📊 Métricas del modelo")
         col1, col2, col3 = st.columns(3)
         col1.metric("AIC", f"{metrics['AIC']:.2f}")
         col2.metric("BIC", f"{metrics['BIC']:.2f}")
-        col3.metric("Log-Likelihood", f"{metrics['LogLik']:.2f}")
+        col3.metric("LogLik", f"{metrics['LogLik']:.2f}")
+        """
 
-        # --- Gráfico histórico + futuro ---
-        st.subheader("📈 Predicción futura")
+        # --- Gráfico interactivo ---
+        st.subheader("📈 Predicción (€/litro)")
 
-        fig, ax = plt.subplots(figsize=(12, 5))
+        fig = go.Figure()
 
         # Histórico
-        ax.plot(df_hist.index, df_hist["Precio"], label="Histórico", color="blue")
+        fig.add_trace(go.Scatter(
+            x=df_hist.index,
+            y=df_hist["Precio"],
+            mode="lines",
+            name="Histórico",
+            line=dict(color="blue")
+        ))
 
-        # Futuro
-        ax.plot(df_pred.index, df_pred["Predicción"], label="Predicción futura", color="green")
-        ax.fill_between(df_pred.index, df_pred["Lower"], df_pred["Upper"],
-                        color="lightgreen", alpha=0.3, label="Intervalo confianza")
+        # Predicción
+        fig.add_trace(go.Scatter(
+            x=df_pred.index,
+            y=df_pred["Predicción"],
+            mode="lines",
+            name="Predicción futura",
+            line=dict(color="green")
+        ))
 
-        ax.set_title(f"{provincia} / {producto} — Predicción {horizonte} días")
-        ax.set_ylabel("€/litro")
-        ax.legend()
+        # Intervalo
+        fig.add_trace(go.Scatter(
+            x=list(df_pred.index) + list(df_pred.index[::-1]),
+            y=list(df_pred["Upper"]) + list(df_pred["Lower"][::-1]),
+            fill="toself",
+            fillcolor="rgba(0,255,0,0.2)",
+            line=dict(color="rgba(255,255,255,0)"),
+            hoverinfo="skip",
+            name="Intervalo confianza"
+        ))
 
-        st.pyplot(fig)
-
-        # --- Botón de descarga ---
-        st.subheader("📥 Descargar predicción futura")
-        st.download_button(
-            label="Descargar como CSV",
-            data=df_pred.to_csv().encode("utf-8"),
-            file_name=f"prediccion_{provincia}_{producto}_{horizonte}dias.csv",
-            mime="text/csv"
+        fig.update_layout(
+            yaxis_title="€/litro",
+            hovermode="x unified",
+            title=f"{provincia} / {producto} — Predicción {horizonte} días"
         )
 
-        # --- Mostrar tabla ---
+        st.plotly_chart(fig, use_container_width=True)
+
+        df_pred = df_pred.rename(columns={
+            "Lower": "Limite Inferior",
+            "Upper": "Limite Superior"
+        })
+
+        df_pred.index.name = "Fecha"
+
+        # --- Descargar ---s
+        st.download_button(
+            "Descargar predicción (CSV)",
+            df_pred.to_csv().encode("utf-8"),
+            file_name=f"prediccion_{provincia}_{producto}_{horizonte}dias.csv"
+        )
+
         st.dataframe(df_pred)

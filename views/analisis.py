@@ -5,33 +5,19 @@ import os
 import plotly.express as px
 
 # Pipelines
-from src.etl.pipelineclean import build_base_parquets
-from src.preprocessing import analyze_segment
+from src.analysis import get_analyze, analyze_segment
 
 def run():
-    RAW_PATH = "src/data/raw"
     SEGMENTED_PATH = "src/data/segmented"
 
     # ---------------------------------------------------------
     # TÍTULO
     # ---------------------------------------------------------
     st.title("📊 Análisis de series temporales")
-    st.markdown("Selecciona una provincia y un producto, luego ejecuta el análisis.")
+    st.markdown("Para ejecuta el análisis selecciona una provincia y un producto.")
 
     # ---------------------------------------------------------
-    # 1. Verificar si existen datos segmentados
-    # ---------------------------------------------------------
-
-    def segmented_data_exists():
-        return os.path.exists(SEGMENTED_PATH) and len(os.listdir(SEGMENTED_PATH)) > 0
-
-    if not segmented_data_exists():
-        st.warning("No se encontraron datos segmentados. Procesando archivos CSV…")
-        build_base_parquets(RAW_PATH)
-        st.success("Datos segmentados correctamente. Ya puedes analizar las series.")
-
-    # ---------------------------------------------------------
-    # 2. Cargar provincias y productos
+    # 1. Cargar provincias y productos
     # ---------------------------------------------------------
 
     provincias = sorted([
@@ -61,22 +47,26 @@ def run():
     # ---------------------------------------------------------
 
     st.markdown("---")
-    st.subheader("🔍 Ejecutar análisis")
+    #st.subheader("📊 Ejecutar análisis")
 
-    analizar = st.button("📊 Analizar serie seleccionada")
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("📊 Predecir serie seleccionada"):
+            with st.spinner("Ejecutando Análisis"):
+                 analyze_segment(provincia,producto)
+            st.success("Análisis completado.")
 
-    if not analizar:
-        st.info("Selecciona provincia y producto, luego pulsa **Analizar serie seleccionada**.")
+    with col2:
+        mostrar_resultados = st.button("🔍 Ver resultados")
+
+    if not mostrar_resultados:
         st.stop()
 
     # ---------------------------------------------------------
     # 4. Ejecutar análisis bajo demanda
     # ---------------------------------------------------------
 
-    with st.spinner("Ejecutando análisis estadístico…"):
-        df_original, df_stationary, metadata, stationary_flag = analyze_segment(provincia, producto)
-
-    st.success("Análisis completado.")
+    df_original, df_stationary, metadata, stationary_flag = get_analyze(provincia, producto)
 
     # ---------------------------------------------------------
     # 5. Visualización de la serie original
@@ -121,5 +111,5 @@ def run():
         st.metric("KPSS p-value", f"{metadata['kpss']['pvalue']:.4f}")
         st.metric("KPSS stat", f"{metadata['kpss']['stat']:.2f}")
 
-    estado = "✅ Estacionaria" if metadata["stationary"] else "⚠️ No estacionaria"
+    estado = "✅ Estacionaria" if stationary_flag else "⚠️ No estacionaria"
     st.info(f"**Serie evaluada como:** {estado}")

@@ -1,6 +1,6 @@
 import streamlit as st
 from src.auth.auth import init_session, logout
-from views import home, login, analisis, prediccion, configuracion
+from views import home, login, analisis, prediccion, configuracion, data_manager, procesamiento_masivo
 
 st.set_page_config(
     page_title='predicciones.es', 
@@ -17,7 +17,7 @@ if st.session_state.authenticated:
 
     option = st.sidebar.radio(
         "Menú",
-        ["Home", "Análisis", "Predicciones", "Configuración"]
+        ["Home", "Análisis", "Predicciones", "Configuración", "Datos", "Precesamiento Masivo"]
     )
 
     if st.sidebar.button("🔓 Cerrar sesión"):
@@ -54,6 +54,18 @@ elif option == "Predicciones":
 elif option == "Configuración":
     if st.session_state.authenticated:
         configuracion.run()
+    else:
+        st.warning("Debes iniciar sesión")
+        login.run()
+elif option == "Datos":
+    if st.session_state.authenticated:
+        data_manager.run()
+    else:
+        st.warning("Debes iniciar sesión")
+        login.run()
+elif option == "Precesamiento Masivo":
+    if st.session_state.authenticated:
+        procesamiento_masivo.run()
     else:
         st.warning("Debes iniciar sesión")
         login.run()

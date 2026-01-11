@@ -1,16 +1,16 @@
 import streamlit as st
 import os
-from src.train_model import predict_segment
+from src.train_model import get_predict, predict_segment
 import matplotlib.pyplot as plt
-from src.preprocessing import analyze_segment
-# ---------------------------------------------------------
-# TÍTULO
-# ---------------------------------------------------------
-st.title("📊 Predicción de Precios de Hidrocarburos")
-st.markdown("Selecciona una provincia y un producto, luego ejecute la predicción.")
 
 def run():
     SEGMENTED_PATH = "src/data/segmented"
+    # ---------------------------------------------------------
+    # TÍTULO
+    # ---------------------------------------------------------
+    st.title("📊 Predicción de Precios de Carburantes")
+    st.markdown("Para ejecuta la predicción selecciona una provincia y un producto.")
+
     # ---------------------------------------------------------
     # 1. Cargar provincias y productos
     # ---------------------------------------------------------
@@ -42,43 +42,36 @@ def run():
     # ---------------------------------------------------------
 
     st.markdown("---")
-    st.subheader("🔍 Ejecutar Predicción")
+    #st.subheader("📊 Ejecutar Predicción")
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("📊 Predecir serie seleccionada"):
+            with st.spinner("Ejecutando predicción"):
+                 predict_segment(provincia,producto)
+            st.success("Predicción completada.")
 
-    analizar = st.button("📊 Predecir serie seleccionada")
-    
-    ruta = os.path.join(SEGMENTED_PATH, provincia, producto, "stationary.parquet")
+    with col2:
+        mostrar_resultados = st.button("🔍 Ver resultados")
 
-    # Si ya existe, simplemente cargarlo
-
-    if not analizar:
-        st.info("Selecciona provincia y producto, luego pulsa **Predecir serie seleccionada**.")
+    if not mostrar_resultados:
         st.stop()
-
-
-    # ---------------------------------------------------------
-    # 4. Ejecutar predicción bajo demanda
-    # ---------------------------------------------------------
-
-    with st.spinner("Ejecutando predicción"):
-        df_original, df_stationary, metadata, stationary_flag = analyze_segment(provincia, producto)
-        y_test, pred_mean, pred_ci, mae, rmse = predict_segment(provincia, producto)
-
-    st.success("Predicción completada.")
-
+    
+    y_test, pred_mean, pred_ci, mae, rmse = get_predict(provincia, producto)
     # ---------------------------------------------------------
     # 5. Visualización de la serie original
     # ---------------------------------------------------------
-    st.write("MAE:", mae)
-    st.write("RMSE:", rmse)
+    if mostrar_resultados:
+        st.write("MAE:", mae)
+        st.write("RMSE:", rmse)
 
-    # --- Visualización ---
-    fig, ax = plt.subplots(figsize=(10,5))
-    y_test.plot(ax=ax, label="Real", color="blue")
-    pred_mean.plot(ax=ax, label="Predicción", color="red")
-    ax.fill_between(pred_ci.index,
-                    pred_ci.iloc[:,0],
-                    pred_ci.iloc[:,1],
-                    color="pink", alpha=0.3)
-    ax.set_title(f"Predicción de precios - {provincia} / {producto}")
-    ax.legend()
-    st.pyplot(fig)
+        # --- Visualización ---
+        fig, ax = plt.subplots(figsize=(10,5))
+        y_test.plot(ax=ax, label="Real", color="blue")
+        pred_mean.plot(ax=ax, label="Predicción", color="red")
+        ax.fill_between(pred_ci.index,
+                        pred_ci.iloc[:,0],
+                        pred_ci.iloc[:,1],
+                        color="pink", alpha=0.3)
+        ax.set_title(f"Predicción de precios - {provincia} / {producto}")
+        ax.legend()
+        st.pyplot(fig)

@@ -18,19 +18,35 @@ def load_historico(provincia, producto):
     df = df.set_index("Fecha").sort_index()
     return df
 
+def reintegrar_prediccion(pred_mean, pred_ci, ultimo_precio_real):
+    precio_real = pred_mean.cumsum() + ultimo_precio_real
+    lower_real = pred_ci.iloc[:, 0].cumsum() + ultimo_precio_real
+    upper_real = pred_ci.iloc[:, 1].cumsum() + ultimo_precio_real
+
+    return pd.DataFrame({
+        "Predicción": precio_real,
+        "Lower": lower_real,
+        "Upper": upper_real
+    })
+
 
 def predict_future_days(provincia, producto, dias):
     # --- Cargar modelo ---
-    results = load_model(provincia, producto)
+    model_path = os.path.join(BASE_PATH, provincia, producto, "model.pkl")
+    results = SARIMAXResults.load(model_path)
 
-    # --- Cargar histórico ---
-    df_hist = load_historico(provincia, producto)
-    last_date = df_hist.index.max()
+    # --- Cargar histórico real ---
+    ruta_original = os.path.join(BASE_PATH, provincia, producto, "original.parquet")
+    df_original = pd.read_parquet(ruta_original)
+    df_original["Fecha"] = pd.to_datetime(df_original["Fecha"])
+    df_original = df_original.set_index("Fecha").sort_index()
+
+    ultimo_precio_real = df_original["Precio"].iloc[-1]
+
+    # --- Generar fechas futuras ---
+    last_date = df_original.index.max()
     fechas_futuras = pd.date_range(start=last_date + pd.Timedelta(days=1),
                                    periods=dias, freq="D")
-    
-    print("Fechas Futuras:", fechas_futuras)
-
 
     # --- Exógenas futuras ---
     loader = loadRate()
@@ -46,17 +62,16 @@ def predict_future_days(provincia, producto, dias):
 
     # --- Predicción ---
     pred = results.get_forecast(steps=len(exog), exog=exog)
+
     pred_mean = pred.predicted_mean
     pred_ci = pred.conf_int()
 
+    # Forzar fechas correctas
     pred_mean.index = exog.index
     pred_ci.index = exog.index
 
-    df_pred = pd.DataFrame({
-        "Predicción": pred_mean,
-        "Lower": pred_ci.iloc[:, 0],
-        "Upper": pred_ci.iloc[:, 1]
-    })
+    # --- Convertir a valores reales ---
+    df_pred_real = reintegrar_prediccion(pred_mean, pred_ci, ultimo_precio_real)
 
     # --- Métricas del modelo ---
     metrics = {
@@ -65,4 +80,4 @@ def predict_future_days(provincia, producto, dias):
         "LogLik": results.llf
     }
 
-    return df_hist, df_pred, metrics
+    return df_original, df_pred_real, metrics

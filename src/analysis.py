@@ -51,4 +51,18 @@ def analyze_segment(provincia, producto):
 
     save_metadata(metadata, metadata_path)
 
+
+
+def get_analyze(provincia, producto):
+    base_path = f"src/data/segmented/{provincia}/{producto}/"
+    original_path = base_path + "original.parquet"
+    stationary_path = base_path + "stationary.parquet"
+    metadata_path = base_path + "metadata.json"
+
+    df = pd.read_parquet(original_path)
+    df_stationary = pd.read_parquet(stationary_path)
+    metadata = pd.read_json(metadata_path)
+    stationary_flag = bool(metadata["stationary"].iloc[0])
+    print(stationary_flag, type(stationary_flag))
+
     return df, df_stationary, metadata, stationary_flag
