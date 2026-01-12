@@ -3,7 +3,7 @@ from statsmodels.tsa.statespace.sarimax import SARIMAX
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 import os
 from src.service.loadRate import loadRate  # <--- NUEVA CLASE
-from src.data_loader import getBret,get_Bret_for_dates
+from src.data_loader import get_Bret_for_dates
 from src.service.loadHolidays import get_festivos_provincia
 
 def predict_segment(provincia, producto):

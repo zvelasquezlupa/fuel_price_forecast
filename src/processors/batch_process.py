@@ -1,6 +1,6 @@
 # processors/batch_process.py
 import threading
-from src.analysis import analyze_segment
+from src.analysis import analisis_estacionaridad
 from src.train_model import predict_segment
 from src.utils.helpers import get_productos,get_provincias
 from src.processors.progress import update_progress, init_progress
@@ -15,7 +15,7 @@ def procesar_todo():
             try:
                 update_progress(current=segmento)
                 # 1) Análisis
-                analyze_segment(provincia, producto)
+                analisis_estacionaridad(provincia, producto)
 
                 # 2) Entrenamiento + predicción
                 mae, rmse = predict_segment(provincia, producto)
