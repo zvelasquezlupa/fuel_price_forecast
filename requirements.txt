@@ -1,9 +1,8 @@
-pandas
-numpy
-matplotlib
-statsmodels
-scikit-learn
-streamlit
-seaborn
-plotly
-holidays
+streamlit==1.32.0
+pandas==2.2.0
+numpy==1.26.4
+plotly==5.18.0
+matplotlib==3.8.2
+statsmodels==0.14.1
+scikit-learn==1.4.0
+holidays==0.41
