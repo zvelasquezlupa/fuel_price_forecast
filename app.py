@@ -1,6 +1,6 @@
 import streamlit as st
 from src.auth.auth import init_session, logout
-from views import home, login, analisis, prediccion, configuracion, data_manager, procesamiento_masivo
+from views import analysis, batch_series, data_configuration, data_loader, home, login, train_model
 
 st.set_page_config(
     page_title='predicciones.es', 
@@ -39,33 +39,33 @@ elif option == "Login":
 
 elif option == "Análisis":
     if st.session_state.authenticated:
-        analisis.run()
+        analysis.run()
     else:
         st.warning("Debes iniciar sesión")
         login.run()
 
 elif option == "Predicciones":
     if st.session_state.authenticated:
-        prediccion.run()
+        train_model.run()
     else:
         st.warning("Debes iniciar sesión")
         login.run()
 
 elif option == "Configuración":
     if st.session_state.authenticated:
-        configuracion.run()
+        data_configuration.run()
     else:
         st.warning("Debes iniciar sesión")
         login.run()
 elif option == "Datos":
     if st.session_state.authenticated:
-        data_manager.run()
+        data_loader.run()
     else:
         st.warning("Debes iniciar sesión")
         login.run()
 elif option == "Precesamiento Masivo":
     if st.session_state.authenticated:
-        procesamiento_masivo.run()
+        batch_series.run()
     else:
         st.warning("Debes iniciar sesión")
         login.run()

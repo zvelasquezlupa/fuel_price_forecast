@@ -2,8 +2,8 @@
 
 import streamlit as st
 import time
-from src.processors.batch_process import procesar_todo_background
-from src.processors.progress import load_progress, init_progress
+from src.forecast.processors.batch_process import procesar_todo_background
+from src.forecast.processors.progress import load_progress, init_progress
 
 def view_progress():
     """Vista que muestra el progreso en tiempo (casi) real."""

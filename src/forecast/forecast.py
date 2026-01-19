@@ -1,9 +1,9 @@
 import os
 import pandas as pd
 from statsmodels.tsa.statespace.sarimax import SARIMAXResults
-from src.service.loadRate import loadRate
-from src.data_loader import get_Bret_for_dates
-from src.service.loadHolidays import get_festivos_provincia
+from src.data_exogenous.load_rate import loadRate
+from src.data_exogenous.load_bret import get_Bret_for_dates
+from src.data_exogenous.load_holidays import get_festivos_provincia
 
 BASE_PATH = "src/data/segmented"
 def load_model(provincia, producto):

@@ -2,11 +2,12 @@ import pandas as pd
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 import os
-from src.service.loadRate import loadRate  # <--- NUEVA CLASE
-from src.data_loader import get_Bret_for_dates
-from src.service.loadHolidays import get_festivos_provincia
+from src.data_exogenous.load_rate import loadRate  # <--- NUEVA CLASE
+from src.data_exogenous.load_bret import get_Bret_for_dates
+from src.data_exogenous.load_holidays import get_festivos_provincia
+from src.analysis.analysis import _sugerir_parametros_arima
 
-def predict_segment(provincia, producto):
+def predict_segment(provincia, producto, order, seasonal_order):
     # --- Construir ruta del archivo ---
     BASE_PATH = "src/data/segmented"
     ruta = os.path.join(BASE_PATH, provincia, producto, "stationary.parquet")
@@ -56,8 +57,8 @@ def predict_segment(provincia, producto):
     model = SARIMAX(
         y_train,
         exog=exog_train,
-        order=(1,1,1),
-        seasonal_order=(0,1,1,7)
+        order=order,
+        seasonal_order=seasonal_order
     )
     results = model.fit()
 
@@ -77,7 +78,19 @@ def predict_segment(provincia, producto):
         "Lower": pred_ci.iloc[:, 0],
         "Upper": pred_ci.iloc[:, 1]
     })
-    df_pred.to_parquet(os.path.join(BASE_PATH, provincia, producto, "prediccion.parquet"))
+    #df_pred.to_parquet(os.path.join(BASE_PATH, provincia, producto, "prediccion.parquet"))
+
+    #Predecir sin variables exogenas
+    
+    #predecir LSTM:
+
+    #predecir Prophet
+
+
+    #calcular para cada predicción los datos de MAE,RMSE y tiempo
+    #Registrar los resultados en un dataset y guardarlo en un csv:
+
+
 
 def get_predict(provincia, producto):
     # --- Construir ruta del archivo ---
@@ -96,3 +109,11 @@ def get_predict(provincia, producto):
     rmse = mean_squared_error(y_test, pred_mean) ** 0.5  # RMSE manual
 
     return y_test, pred_mean, pred_ci, mae, rmse
+
+def cargar_metadata(provincia, producto):
+    base_path = f"src/data/segmented/{provincia}/{producto}/"
+    original_path = base_path + "original.parquet" 
+    df_precio = pd.read_parquet(original_path)
+    df_precio['Fecha'] = pd.to_datetime(df_precio['Fecha'])
+    df_precio = df_precio.set_index('Fecha').sort_index()
+    return _sugerir_parametros_arima(df_precio['Precio'])

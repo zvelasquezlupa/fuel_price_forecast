@@ -2,18 +2,18 @@ import os
 import pandas as pd
 import numpy as np
 import json
-from src.stats.stationarity import adf_test, kpss_test, is_stationary, validate_stationarity
-from src.stats.transformations import difference
-from src.persistence.file_store import save_parquet, save_metadata
+from src.analysis.stationarity import adf_test, kpss_test, is_stationary, validate_stationarity
+from src.analysis.transformations import difference
+from src.utils.file_store import save_parquet, save_metadata
 
 # Nuevas importaciones para análisis completo
 from statsmodels.tsa.stattools import acf, pacf, grangercausalitytests
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 from scipy.stats import ttest_ind
 
-from src.service.loadRate import loadRate  # <--- NUEVA CLASE
-from src.data_loader import get_Bret_for_dates
-from src.service.loadHolidays import get_festivos_provincia
+from src.data_exogenous.load_rate import loadRate  # <--- NUEVA CLASE
+from src.data_exogenous.load_bret import get_Bret_for_dates
+from src.data_exogenous.load_holidays import get_festivos_provincia
 
 def to_native(obj):
     if hasattr(obj, "item"):
@@ -109,6 +109,8 @@ def get_analyze_complete(provincia, producto):
         "parametros_arima": _sugerir_parametros_arima(df['Precio']),
         "festivos_analisis": _analizar_festivos(df)
     }
+
+    #
 
     metadata = pd.read_json(metadata_path)
     stationary_flag = bool(metadata["stationary"].iloc[0])

@@ -1,7 +1,7 @@
 import pandas as pd
 import os
-from src.etl.clean import clean_data
-from src.etl.segment import segment_by_province_product
+from src.data_preprocessing.clean import clean_data
+from src.data_preprocessing.segment import segment_by_province_product
 def actualizar_datos(file):
     df_csv = pd.read_csv(file, sep=";")
     df = clean_data(df_csv)
@@ -42,3 +42,9 @@ def actualizar_datos(file):
         df_final.to_parquet(ruta, index=False)
 
     return df
+
+
+def get_datos(provincia,producto):
+    ruta = f"src/data/segmented/{provincia}/{producto}/original.parquet"
+    df_actual = pd.read_parquet(ruta)
+    return df_actual

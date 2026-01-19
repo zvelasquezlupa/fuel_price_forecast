@@ -2,7 +2,7 @@ import streamlit as st
 import os
 import plotly.graph_objects as go
 
-from src.forecast import predict_future_days
+from src.forecast.forecast import predict_future_days
 
 def run():
     st.title("Predicción del precio de los carburantes en España")

@@ -9,7 +9,7 @@ from plotly.subplots import make_subplots
 from statsmodels.tsa.stattools import acf, pacf
 import inspect
 # Nuevos imports para análisis completo
-from src.analysis import get_analyze_complete, analisis_estacionaridad
+from src.analysis.analysis import get_analyze_complete, analisis_estacionaridad
 
 
 def run():

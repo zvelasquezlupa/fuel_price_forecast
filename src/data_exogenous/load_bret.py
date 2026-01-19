@@ -1,6 +1,6 @@
 import pandas as pd
 from datetime import datetime
-from src.persistence.file_store import save_parquet
+from src.utils.file_store import save_parquet
 from pathlib import Path
 
 base_path = f"src/data/metadata"

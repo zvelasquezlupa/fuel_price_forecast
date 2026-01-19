@@ -1,5 +1,5 @@
 import streamlit as st
-from src.data_loader import loadBret, getBret
+from src.data_exogenous.load_bret import loadBret, getBret
 
 
 def run():
